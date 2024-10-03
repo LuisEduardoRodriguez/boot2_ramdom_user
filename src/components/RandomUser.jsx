@@ -1,65 +1,58 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-
 export const RandomUser = () => {
+  const [character, setCharacter] = useState(null);
 
-  const [user, setUser] = useState(null);
+  const fetchCharacter = async () => {
+    try {
+      
+      const randomId = Math.floor(Math.random() * 826) + 1; 
+      const response = await axios.get(`https://rickandmortyapi.com/api/character/${randomId}`);
+      const data = response.data;
+
+      
+      const characterData = {
+        name: data.name,
+        status: data.status,
+        species: data.species,
+        gender: data.gender,
+        image: data.image,
+      };
+
+
+      setCharacter(characterData);
+    } catch (error) {
+      console.error("Error al consultar los datos de la API: ", error);
+    }
+  };
 
   useEffect(() => {
+    fetchCharacter(); // Obtener un personaje al cargar el componente
 
-    // Definir un función asíncrona para la petición a la API
-    const fetchData = async () => {
-      try {
-
-        // Realizar la petición a la API
-        const response = await axios.get("https://api.randomuser.me");
-
-        // Obtener los datos de la petición
-        const data = response.data;
-
-        // Formatear los datos a mostrar
-        const userData = {
-          name: data.results[0].name,
-          email: data.results[0].email,
-          phone: data.results[0].phone,
-          city: data.results[0].location.city,
-          state: data.results[0].location.state,
-          country: data.results[0].location.country,
-          picture: data.results[0].picture.large
-        };
-
-        // Actualizar la variable de estado con los datos recibidos de la API pero formateados
-        setUser(userData);
-
-      } catch (error) {
-        console.error("Error al consultar los datos de la API: ", error);
-      }
-    };
-    fetchData();
-
-    const intervalId = setInterval(fetchData, 2000);
-
+    const intervalId = setInterval(fetchCharacter, 2000);
     return () => clearInterval(intervalId);
-
-  }, []); // Array de depencias vacío para que useEffect se ejecute una vez
+  }, []);
 
   return (
     <div className='d-flex justify-content-center align-items-center vh-100'>
-      
-        <div className='col-lg-4'>
+      <div className='col-lg-4'>
+        {character ? (
           <div className="card text-center">
-            <div className='card-header'>
-              <img src={user?.picture} alt="" />
-            </div>
+            <img src={character.image} alt={character.name} className="card-img-top" />
             <div className="card-body">
-              <h4 className='card-title'>{user?.name.first}</h4>
-              <h4 className='card-title'>{user?.name.last}</h4>
-              <p className="card-text">{user?.email}</p>
+              <h5 className="card-title">{character.name}</h5>
+              <p className="card-text">Status: {character.status}</p>
+              <p className="card-text">Species: {character.species}</p>
+              <p className="card-text">Gender: {character.gender}</p>
             </div>
           </div>
-        </div>
-
+        ) : (
+          <p>Cargando personaje...</p>
+        )}
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default RandomUser;
